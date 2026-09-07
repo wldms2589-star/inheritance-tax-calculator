@@ -735,16 +735,121 @@ details.more > .more-body { padding-top: 14px; }
   font-weight: 600;
 }
 
+/* ── 검색으로 들어온 분들을 위한 설명 ───────────────────── */
+.seo-content {
+  margin-top: 24px;
+  padding: 22px 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.seo-content h2 {
+  margin: 0 0 10px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.seo-content h3 {
+  margin: 26px 0 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.seo-content > p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  line-height: 1.7;
+  word-break: keep-all;
+}
+
+.rate-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.87rem;
+}
+
+.rate-table caption {
+  text-align: left;
+  padding-bottom: 8px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.rate-table th,
+.rate-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.rate-table thead th {
+  background: var(--surface-alt);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.rate-table td:nth-child(2),
+.rate-table td:nth-child(3) {
+  font-family: var(--font-num);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.faq { display: grid; gap: 8px; }
+
+.faq details {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-alt);
+  overflow: hidden;
+}
+
+.faq summary {
+  padding: 12px 14px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  list-style: none;
+  user-select: none;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  word-break: keep-all;
+}
+
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: '＋'; color: var(--primary); flex: none; }
+.faq details[open] summary::after { content: '－'; }
+.faq details[open] summary { border-bottom: 1px solid var(--border); }
+
+.faq p {
+  margin: 0;
+  padding: 12px 14px;
+  font-size: 0.87rem;
+  color: var(--text-soft);
+  line-height: 1.7;
+  word-break: keep-all;
+}
+
 /* ── 임베드 모드 ────────────────────────────────────────── */
 body.embed { background: transparent; }
 body.embed .wrap { padding: 8px 10px 20px; max-width: none; }
 body.embed .page-header { margin-bottom: 14px; }
 body.embed .page-header h1 { font-size: 1.25rem; }
+/* 블로그 본문이 길어지지 않도록 설명 영역은 감춥니다. */
+body.embed .seo-content { display: none; }
 
 /* ── 인쇄 ───────────────────────────────────────────────── */
 @media print {
   body { background: #fff; }
-  .actions, .cta-buttons, details.more { display: none; }
+  .actions, .cta-buttons, details.more, .seo-content { display: none; }
   .card, .result-card, .page-footer { box-shadow: none; break-inside: avoid; }
   .layout { grid-template-columns: 1fr; }
   .breakdown[open] > summary { display: none; }

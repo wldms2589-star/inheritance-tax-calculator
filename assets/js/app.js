@@ -973,10 +973,8 @@ function notifyHeight() {
    ──────────────────────────────────────────────────────────── */
 
 function applyConfig() {
-  if (SITE.title) {
-    $('siteTitle').textContent = SITE.title;
-    document.title = SITE.title;
-  }
+  // 화면 제목만 바꿉니다. 브라우저 탭 제목(<title>)은 검색 결과에 그대로 쓰이므로 건드리지 않습니다.
+  if (SITE.title) $('siteTitle').textContent = SITE.title;
   if (SITE.subtitle) $('siteSubtitle').textContent = SITE.subtitle;
   $('disclaimer').textContent = DISCLAIMER;
 

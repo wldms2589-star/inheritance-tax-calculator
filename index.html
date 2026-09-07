@@ -3,12 +3,131 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>상속세 간단 계산기</title>
-<meta name="description" content="재산 규모만 입력하면 상속세가 나오는 구간인지 바로 확인할 수 있는 간단 계산기입니다. 현행 상속세 및 증여세법 기준.">
-<meta property="og:title" content="상속세 간단 계산기">
-<meta property="og:description" content="재산 규모만 입력하면 상속세가 나오는 구간인지 바로 확인할 수 있습니다.">
+<title>상속세 계산기 | 배우자·자녀 공제까지 자동 반영 - 세무회계 성안</title>
+<meta name="description" content="재산 금액만 넣으면 상속세가 나오는 구간인지 1분 만에 확인합니다. 배우자 상속공제와 일괄공제는 물론 미성년자·장애인 공제까지 나이만 넣으면 자동 계산되고, 결과지를 PDF로 저장해 세무사 상담으로 이어집니다.">
+<meta name="keywords" content="상속세 계산기, 상속세, 상속세 계산, 배우자 상속공제, 일괄공제, 상속공제, 상속세 세율, 상속세 신고, 상속세 간편계산, 상속세 면제한도, 세무회계 성안">
+<meta name="author" content="세무회계 성안">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://sa-tax.github.io/">
+
+<!--
+  검색엔진에 사이트를 등록할 때 발급받는 소유확인 코드를 여기에 넣으세요.
+  네이버 서치어드바이저 / 구글 서치콘솔에서 각각 발급받습니다.
+-->
+<!-- <meta name="naver-site-verification" content="발급받은코드"> -->
+<!-- <meta name="google-site-verification" content="발급받은코드"> -->
+
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://sa-tax.github.io/">
+<meta property="og:site_name" content="세무회계 성안">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="상속세 계산기 - 우리 집도 상속세를 낼까?">
+<meta property="og:description" content="재산 금액만 넣으면 상속세가 나오는 구간인지 바로 확인할 수 있습니다. 배우자·자녀 공제까지 반영한 간편 계산기.">
+<meta property="og:image" content="https://sa-tax.github.io/assets/img/logo.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="상속세 계산기 - 우리 집도 상속세를 낼까?">
+<meta name="twitter:description" content="재산 금액만 넣으면 상속세가 나오는 구간인지 바로 확인할 수 있습니다.">
+<meta name="twitter:image" content="https://sa-tax.github.io/assets/img/logo.png">
+
 <link rel="stylesheet" href="assets/css/style.css">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "@id": "https://sa-tax.github.io/#calculator",
+      "name": "상속세 간단 계산기",
+      "url": "https://sa-tax.github.io/",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "All",
+      "inLanguage": "ko-KR",
+      "description": "재산 금액과 상속인 구성을 넣으면 예상 상속세와 과세 구간을 계산하는 무료 계산기입니다.",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KRW" },
+      "provider": { "@id": "https://sa-tax.github.io/#organization" }
+    },
+    {
+      "@type": "AccountingService",
+      "@id": "https://sa-tax.github.io/#organization",
+      "name": "세무회계 성안",
+      "description": "상속·증여 전문 세무회계",
+      "url": "https://sa-tax.github.io/",
+      "logo": "https://sa-tax.github.io/assets/img/logo.png",
+      "image": "https://sa-tax.github.io/assets/img/logo.png",
+      "telephone": "+82-10-4683-1200",
+      "areaServed": "KR",
+      "employee": {
+        "@type": "Person",
+        "name": "김지은",
+        "jobTitle": "대표세무사"
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://sa-tax.github.io/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "상속세는 재산이 얼마부터 나오나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "배우자와 자녀가 함께 상속받으면 일괄공제 5억원과 배우자 상속공제 최소 5억원을 더해 보통 10억원까지는 상속세가 나오지 않습니다. 배우자 없이 자녀만 상속받으면 일괄공제 5억원만 적용되어 5억원을 넘으면 세금이 발생합니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "배우자가 있으면 얼마까지 공제되나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "배우자가 실제로 상속받은 금액을 기준으로 최대 30억원까지 공제됩니다. 다만 법정상속분을 넘을 수 없고, 실제 상속받은 금액이 적더라도 최소 5억원은 공제됩니다. 자녀 등 다른 상속인 없이 배우자만 상속받는 경우에는 일괄공제 5억원을 쓸 수 없습니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "상속세 신고는 언제까지 해야 하나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "상속개시일(사망일)이 속하는 달의 말일부터 6개월 이내에 신고·납부해야 합니다. 예를 들어 3월 15일에 돌아가셨다면 9월 30일까지입니다. 기한을 넘기면 무신고가산세와 납부지연가산세가 더해집니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "상속세가 0원이어도 신고해야 하나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "의무는 아니지만 부동산을 물려받았다면 신고하는 편이 유리한 경우가 많습니다. 신고하지 않으면 공시가격 같은 낮은 금액이 취득가액이 되어, 나중에 그 부동산을 팔 때 양도차익이 커지고 양도소득세가 늘어납니다. 감정평가를 받아 시가로 신고해두면 상속세는 0원 그대로면서 취득가액만 높일 수 있습니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "상속세율은 어떻게 되나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "과세표준 1억원 이하 10%, 5억원 이하 20%, 10억원 이하 30%, 30억원 이하 40%, 30억원 초과 50%의 누진세율이 적용됩니다. 여기서 과세표준은 상속재산에서 채무와 각종 상속공제를 뺀 금액입니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "미리 증여한 재산도 상속재산에 합쳐지나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "상속인에게 증여한 재산은 10년, 상속인이 아닌 사람에게 증여한 재산은 5년 이내 분이 상속재산에 합산됩니다. 이미 낸 증여세는 세액공제로 빼주지만, 합산으로 세율 구간이 올라가면 세부담이 늘어날 수 있습니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "상속세를 한 번에 낼 돈이 없으면 어떻게 하나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "납부세액이 1천만원을 넘으면 두 달 안에 나누어 내는 분납이, 2천만원을 넘으면 담보를 제공하고 최장 10년에 걸쳐 내는 연부연납이 가능합니다. 연부연납은 신고기한 안에 신청해야만 하므로 미리 준비해야 합니다."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
 </head>
 <body>
 <div class="wrap">
@@ -488,6 +607,96 @@
     </div>
 
   </div>
+
+  <!--
+    검색으로 들어온 분들을 위한 설명입니다.
+    블로그에 iframe으로 넣을 때(?embed=1)는 글이 길어지지 않도록 숨깁니다.
+  -->
+  <section class="seo-content">
+    <h2>상속세, 언제 얼마나 내나요</h2>
+    <p>
+      상속세는 물려받은 재산 전체에 매기는 것이 아니라, 재산에서 채무와 각종 공제를 뺀
+      <strong>과세표준</strong>에 세율을 곱해 계산합니다. 그래서 같은 30억원을 물려받아도
+      배우자와 자녀가 있는지, 사전에 증여받은 재산이 있는지에 따라 세금이 크게 달라집니다.
+      위 계산기로 대략적인 금액과 과세 구간을 먼저 확인해 보세요.
+    </p>
+
+    <h3>상속세 세율</h3>
+    <table class="rate-table">
+      <caption>과세표준 구간별 세율 (현행 「상속세 및 증여세법」)</caption>
+      <thead>
+        <tr><th scope="col">과세표준</th><th scope="col">세율</th><th scope="col">누진공제</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1억원 이하</td><td>10%</td><td>–</td></tr>
+        <tr><td>1억원 초과 ~ 5억원 이하</td><td>20%</td><td>1,000만원</td></tr>
+        <tr><td>5억원 초과 ~ 10억원 이하</td><td>30%</td><td>6,000만원</td></tr>
+        <tr><td>10억원 초과 ~ 30억원 이하</td><td>40%</td><td>1억 6,000만원</td></tr>
+        <tr><td>30억원 초과</td><td>50%</td><td>4억 6,000만원</td></tr>
+      </tbody>
+    </table>
+
+    <h3>자주 묻는 질문</h3>
+    <div class="faq">
+      <details>
+        <summary>상속세는 재산이 얼마부터 나오나요?</summary>
+        <p>
+          배우자와 자녀가 함께 상속받으면 일괄공제 5억원과 배우자 상속공제 최소 5억원을 더해
+          보통 <strong>10억원까지는 상속세가 나오지 않습니다</strong>. 배우자 없이 자녀만
+          상속받으면 일괄공제 5억원만 적용되어 5억원을 넘으면 세금이 발생합니다.
+        </p>
+      </details>
+      <details>
+        <summary>배우자가 있으면 얼마까지 공제되나요?</summary>
+        <p>
+          배우자가 실제로 상속받은 금액을 기준으로 <strong>최대 30억원까지</strong> 공제됩니다.
+          다만 법정상속분을 넘을 수 없고, 실제 상속받은 금액이 적더라도 최소 5억원은 공제됩니다.
+          자녀 등 다른 상속인 없이 배우자만 상속받는 경우에는 일괄공제 5억원을 쓸 수 없습니다.
+        </p>
+      </details>
+      <details>
+        <summary>상속세 신고는 언제까지 해야 하나요?</summary>
+        <p>
+          상속개시일(사망일)이 속하는 달의 말일부터 <strong>6개월 이내</strong>에 신고·납부해야 합니다.
+          예를 들어 3월 15일에 돌아가셨다면 9월 30일까지입니다. 기한을 넘기면 무신고가산세와
+          납부지연가산세가 더해집니다.
+        </p>
+      </details>
+      <details>
+        <summary>상속세가 0원이어도 신고해야 하나요?</summary>
+        <p>
+          의무는 아니지만 <strong>부동산을 물려받았다면 신고하는 편이 유리한 경우가 많습니다</strong>.
+          신고하지 않으면 공시가격 같은 낮은 금액이 취득가액이 되어, 나중에 그 부동산을 팔 때
+          양도차익이 커지고 양도소득세가 늘어납니다. 감정평가를 받아 시가로 신고해두면
+          상속세는 0원 그대로면서 취득가액만 높일 수 있습니다.
+        </p>
+      </details>
+      <details>
+        <summary>미리 증여한 재산도 상속재산에 합쳐지나요?</summary>
+        <p>
+          상속인에게 증여한 재산은 10년, 상속인이 아닌 사람에게 증여한 재산은 5년 이내 분이
+          상속재산에 합산됩니다. 이미 낸 증여세는 세액공제로 빼주지만, 합산으로 세율 구간이
+          올라가면 세부담이 늘어날 수 있습니다.
+        </p>
+      </details>
+      <details>
+        <summary>상속세를 한 번에 낼 돈이 없으면 어떻게 하나요?</summary>
+        <p>
+          납부세액이 1천만원을 넘으면 두 달 안에 나누어 내는 <strong>분납</strong>이,
+          2천만원을 넘으면 담보를 제공하고 최장 10년에 걸쳐 내는 <strong>연부연납</strong>이
+          가능합니다. 연부연납은 신고기한 안에 신청해야만 하므로 미리 준비해야 합니다.
+        </p>
+      </details>
+      <details>
+        <summary>이 계산기 결과를 그대로 믿어도 되나요?</summary>
+        <p>
+          대략적인 규모를 확인하는 용도입니다. 실제 세액은 재산을 어떻게 평가하는지,
+          가업상속공제 같은 특례가 적용되는지, 사망 전 인출한 예금이 있는지에 따라 달라집니다.
+          금액이 크거나 부동산 비중이 높다면 세무 전문가와 확인해 보시길 권합니다.
+        </p>
+      </details>
+    </div>
+  </section>
 
   <footer class="page-footer">
     <div class="brand" id="brandBox">

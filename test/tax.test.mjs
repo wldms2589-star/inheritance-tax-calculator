@@ -146,7 +146,8 @@ test('배우자와 자녀 2명, 총재산 30억이면 법정상속분 기준 배
     childrenCount: 2,
   });
   const 과세가액 = 30 * 억 - 500 * 만;
-  const 배우자공제 = 과세가액 * (1.5 / 3.5);
+  // 배우자 한도의 기준액에서는 장례비용을 빼지 않으므로 30억원이 그대로 기준이 됩니다.
+  const 배우자공제 = 30 * 억 * (1.5 / 3.5);
 
   eq(r.deductions.spouse.amount, 배우자공제, '배우자 상속공제');
   eq(r.deductions.total, 5 * 억 + 배우자공제, '공제 합계');
@@ -273,8 +274,8 @@ test('배우자 법정상속분 한도는 사전증여재산을 포함한 금액
   });
 
   const share = 1.5 / 3.5;
-  eq(증여없음.deductions.spouse.legalShareLimit, 증여없음.taxableEstate * share);
-  eq(증여있음.deductions.spouse.legalShareLimit, 증여있음.taxableEstate * share);
+  eq(증여없음.deductions.spouse.legalShareLimit, 20 * 억 * share);
+  eq(증여있음.deductions.spouse.legalShareLimit, (20 * 억 + 7 * 억) * share);
   assert.ok(
     증여있음.deductions.spouse.amount > 증여없음.deductions.spouse.amount,
     '사전증여가 더해진 만큼 배우자 공제 한도도 커진다',
@@ -291,7 +292,7 @@ test('배우자 법정상속분 한도에서 상속인이 아닌 자에 대한 �
   const share = 1.5 / 3.5;
   eq(
     r.deductions.spouse.legalShareLimit,
-    (r.taxableEstate - 10 * 억) * share,
+    (30 * 억 - 10 * 억) * share,
     '유증분을 뺀 금액 기준',
   );
 });
@@ -304,7 +305,7 @@ test('배우자 사전증여 과세표준은 법정상속분 한도에서 차감
     spousePriorGiftTaxBase: 2 * 억,
   });
   const share = 1.5 / 3.5;
-  eq(r.deductions.spouse.legalShareLimit, r.taxableEstate * share - 2 * 억);
+  eq(r.deductions.spouse.legalShareLimit, 20 * 억 * share - 2 * 억);
 });
 
 test('배우자가 실제 상속받는 금액을 입력하면 그 금액이 공제 기준이 된다', () => {
@@ -326,7 +327,42 @@ test('배우자가 법정상속분보다 많이 받아도 한도까지만 공제
     spouseActualInherit: 25 * 억,
   });
   const share = 1.5 / 3.5;
-  eq(r.deductions.spouse.amount, r.taxableEstate * share, '법정상속분 한도로 제한');
+  eq(r.deductions.spouse.amount, 30 * 억 * share, '법정상속분 한도로 제한');
+});
+
+test('배우자 법정상속분 한도의 기준액에서 채무와 공과금은 뺀다', () => {
+  // 상증법 시행령 제17조 제1항: 자산총액에서 비과세재산과 공과금·채무를 뺀다
+  const r = calculate({
+    realEstate: 20 * 억,
+    hasSpouse: true,
+    childrenCount: 2,
+    debts: 5 * 억,
+    publicCharges: 1000 * 만,
+    nonTaxable: 2000 * 만,
+  });
+  const share = 1.5 / 3.5;
+  eq(
+    r.deductions.spouse.legalShareLimit,
+    (20 * 억 - 2000 * 만 - 1000 * 만 - 5 * 억) * share,
+    '비과세·공과금·채무를 뺀 금액 기준',
+  );
+});
+
+test('배우자 법정상속분 한도의 기준액에서 장례비용은 빼지 않는다', () => {
+  // 법 제14조는 공과금·장례비용·채무를 함께 규정하지만
+  // 시행령 제17조는 공과금과 채무만 차감하도록 정하고 있습니다.
+  const r = calculate({
+    realEstate: 20 * 억,
+    hasSpouse: true,
+    childrenCount: 2,
+    funeralCost: 1000 * 만,
+    burialCost: 500 * 만,
+  });
+  const share = 1.5 / 3.5;
+
+  eq(r.funeralDeduction, 1500 * 만, '장례비용 공제는 최대치');
+  eq(r.taxableEstate, 20 * 억 - 1500 * 만, '과세가액에서는 장례비용을 뺀다');
+  eq(r.deductions.spouse.legalShareLimit, 20 * 억 * share, '한도 기준액에서는 빼지 않는다');
 });
 
 test('금융재산 공제와 동거주택 공제가 함께 반영된다', () => {

@@ -210,8 +210,15 @@ export function calculate(rawInput, rules = TAX_RULES) {
   const bequestToNonHeir = num(input.bequestToNonHeir);
   const renouncedInheritance = num(input.renouncedInheritance);
 
-  // 배우자 법정상속분 한도는 사전증여를 더하고 상속인이 아닌 자에 대한 유증을 뺀 금액이 기준입니다.
-  const spouseBase = Math.max(0, taxableEstate - bequestToNonHeir);
+  // 배우자 법정상속분 한도의 기준이 되는 상속재산 가액 (상증법 시행령 제17조 제1항)
+  // 자산총액에서 비과세재산과 공과금·채무만 빼며, 장례비용은 빼지 않습니다.
+  // 과세가액(netEstate)과 달라지는 지점이라 따로 계산합니다.
+  const spouseEstateBase = Math.max(
+    0,
+    grossEstate - nonTaxable - num(input.publicCharges) - num(input.debts),
+  );
+  // 여기에 사전증여재산을 더하고 상속인이 아닌 자에 대한 유증을 뺀 금액이 한도의 기준입니다.
+  const spouseBase = Math.max(0, spouseEstateBase + priorGifts - bequestToNonHeir);
   const spouse = calcSpouseDeduction(input, spouseBase, rules);
   const financial = calcFinancialDeduction(input, rules);
   const cohabitHouse = calcCohabitHouseDeduction(input, rules);

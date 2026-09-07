@@ -144,7 +144,15 @@ test('배우자가 있고 세금이 나오면 분할 설계를 안내한다', ()
   const cards = buildAdvice(r, {});
   const card = cards.find((c) => c.id === 'spouse-planning');
   assert.ok(card);
-  assert.match(card.body, /2차 상속/);
+  assert.match(card.body, /재산 분할/);
+});
+
+test('가업·영농 상속 안내는 공제 금액을 단정하지 않는다', () => {
+  const r = calculate({ realEstate: 50 * 억, childrenCount: 2 });
+  const card = buildAdvice(r, { hasBusinessAsset: true }).find((c) => c.id === 'business');
+  assert.ok(card);
+  assert.match(card.title, /반영되지 않았습니다/);
+  assert.doesNotMatch(`${card.title}${card.body}`, /억원/, '구체적인 공제 한도를 적지 않는다');
 });
 
 test('배우자 단독상속이면 일괄공제를 쓸 수 없다고 알린다', () => {

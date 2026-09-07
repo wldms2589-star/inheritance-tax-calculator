@@ -58,7 +58,7 @@ export const CONTACT = {
 ```html
 <iframe
   id="inheritance-calc"
-  src="https://wldms2589-star.github.io/inheritance-tax-calculator/index.html?embed=1"
+  src="https://sa-tax.github.io/index.html?embed=1"
   title="상속세 간단 계산기"
   style="width:100%; height:1200px; border:1px solid #e0e0e0; border-radius:10px;"
   loading="lazy"></iframe>
@@ -80,7 +80,7 @@ window.addEventListener('message', function (e) {
 
 ```html
 <iframe
-  src="https://wldms2589-star.github.io/inheritance-tax-calculator/index.html?embed=1"
+  src="https://sa-tax.github.io/index.html?embed=1"
   title="상속세 간단 계산기"
   style="width:100%; height:800px; border:1px solid #e0e0e0; border-radius:10px;"
   loading="lazy"></iframe>
@@ -91,7 +91,7 @@ window.addEventListener('message', function (e) {
 일부 블로그 서비스는 `<script>`를 지웁니다. 그럴 때는 링크로 연결하세요.
 
 ```html
-<a href="https://wldms2589-star.github.io/inheritance-tax-calculator/">
+<a href="https://sa-tax.github.io/">
   상속세 얼마나 나오는지 계산해보기 →
 </a>
 ```
@@ -205,7 +205,7 @@ ES 모듈을 사용하므로 `index.html`을 파일로 직접 열면 동작하�
 
 ```bash
 npm run serve     # http://localhost:4173
-npm test          # 계산 로직 검증 (55개)
+npm test          # 계산 로직 검증 (79개)
 ```
 
 Node 18 이상이면 별도 설치 없이 그대로 실행됩니다. 외부 라이브러리를 쓰지 않습니다.
@@ -228,7 +228,7 @@ Node 18 이상이면 별도 설치 없이 그대로 실행됩니다. 외부 라�
 │       ├── advice.js       상담 안내 문구 선택 로직
 │       └── app.js          화면 제어, PDF 결과지 생성
 ├── cf/                     원본 자료 (생명표 엑셀, 로고 원본)
-├── test/                   계산·안내·생명표 테스트 78개
+├── test/                   계산·안내·생명표 테스트 79개
 ├── scripts/serve.mjs       로컬 확인용 서버
 └── .github/workflows/      테스트 후 자동 배포
 ```

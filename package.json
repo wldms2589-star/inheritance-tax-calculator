@@ -1,0 +1,12 @@
+{
+  "name": "inheritance-tax-calculator",
+  "version": "1.0.0",
+  "description": "홈택스 간편계산 방식을 참고한 상속세 간단 계산기 (정적 웹, GitHub Pages 배포용)",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test \"test/*.test.mjs\"",
+    "serve": "node scripts/serve.mjs"
+  },
+  "license": "MIT"
+}

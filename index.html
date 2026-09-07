@@ -207,39 +207,37 @@
                 <div class="money-echo" data-echo-for="spouseActualInherit"></div>
               </div>
 
-              <div class="grid-2">
-                <div class="field">
-                  <label for="minorYears">미성년 자녀의 남은 연수 합계</label>
-                  <div class="hint">19세까지 남은 햇수를 모두 더한 값. 1년당 1,000만원 공제됩니다.</div>
-                  <div class="stepper">
-                    <button type="button" data-step="minorYears" data-delta="-1" aria-label="줄이기">−</button>
-                    <input type="number" id="minorYears" min="0" max="200" step="1" value="0">
-                    <button type="button" data-step="minorYears" data-delta="1" aria-label="늘리기">＋</button>
-                    <span class="stepper-echo">년</span>
-                  </div>
+              <div class="field">
+                <span class="field-label">미성년 자녀</span>
+                <div class="hint">
+                  나이만 넣으면 19세가 될 때까지 남은 햇수가 자동으로 계산됩니다.
+                  1년당 1,000만원이 자녀공제와 별도로 더 공제됩니다.
                 </div>
+                <div class="person-list" id="minorList"></div>
+                <button type="button" class="add-person" id="btnAddMinor">＋ 미성년 자녀 추가</button>
+                <div class="person-total" id="minorTotal"></div>
+              </div>
 
-                <div class="field">
-                  <label for="elderlyCount">65세 이상 동거가족 수</label>
-                  <div class="hint">1명당 5,000만원 공제됩니다.</div>
-                  <div class="stepper">
-                    <button type="button" data-step="elderlyCount" data-delta="-1" aria-label="줄이기">−</button>
-                    <input type="number" id="elderlyCount" min="0" max="20" step="1" value="0">
-                    <button type="button" data-step="elderlyCount" data-delta="1" aria-label="늘리기">＋</button>
-                    <span class="stepper-echo">명</span>
-                  </div>
+              <div class="field">
+                <label for="elderlyCount">65세 이상 동거가족 수</label>
+                <div class="hint">1명당 5,000만원 공제됩니다.</div>
+                <div class="stepper">
+                  <button type="button" data-step="elderlyCount" data-delta="-1" aria-label="줄이기">−</button>
+                  <input type="number" id="elderlyCount" min="0" max="20" step="1" value="0">
+                  <button type="button" data-step="elderlyCount" data-delta="1" aria-label="늘리기">＋</button>
+                  <span class="stepper-echo">명</span>
                 </div>
               </div>
 
               <div class="field">
-                <label for="disabledYears">장애인의 기대여명 합계</label>
-                <div class="hint">장애인인 상속인·동거가족의 기대여명 연수. 1년당 1,000만원 공제되며 금액이 큽니다.</div>
-                <div class="stepper">
-                  <button type="button" data-step="disabledYears" data-delta="-1" aria-label="줄이기">−</button>
-                  <input type="number" id="disabledYears" min="0" max="200" step="1" value="0">
-                  <button type="button" data-step="disabledYears" data-delta="1" aria-label="늘리기">＋</button>
-                  <span class="stepper-echo">년</span>
+                <span class="field-label">장애인 상속인 · 동거가족</span>
+                <div class="hint">
+                  나이와 성별만 넣으면 통계청 완전생명표에 따라 기대여명이 자동으로 계산됩니다.
+                  기대여명 1년당 1,000만원이 공제되어 금액이 큰 항목입니다.
                 </div>
+                <div class="person-list" id="disabledList"></div>
+                <button type="button" class="add-person" id="btnAddDisabled">＋ 장애인 추가</button>
+                <div class="person-total" id="disabledTotal"></div>
               </div>
             </div>
           </details>
@@ -329,6 +327,28 @@
                     <span class="unit">만원</span>
                   </div>
                   <div class="money-echo" data-echo-for="casualtyLoss"></div>
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="field">
+                  <label for="bequestToNonHeir">상속인이 아닌 사람에게 준 재산</label>
+                  <div class="hint">유언으로 며느리·사위·손자녀·법인 등에게 물려주는 재산입니다. 그만큼 상속공제 한도가 줄어듭니다.</div>
+                  <div class="money-input">
+                    <input type="text" inputmode="numeric" id="bequestToNonHeir" data-money placeholder="0">
+                    <span class="unit">만원</span>
+                  </div>
+                  <div class="money-echo" data-echo-for="bequestToNonHeir"></div>
+                </div>
+
+                <div class="field">
+                  <label for="renouncedInheritance">상속포기로 넘어간 재산</label>
+                  <div class="hint">선순위 상속인이 포기해 다음 순위 상속인이 받은 재산입니다.</div>
+                  <div class="money-input">
+                    <input type="text" inputmode="numeric" id="renouncedInheritance" data-money placeholder="0">
+                    <span class="unit">만원</span>
+                  </div>
+                  <div class="money-echo" data-echo-for="renouncedInheritance"></div>
                 </div>
               </div>
 
@@ -459,7 +479,7 @@
         </div>
 
         <div class="actions">
-          <button type="button" id="btnPrint">결과 인쇄 / PDF 저장</button>
+          <button type="button" id="btnPrint">인쇄하기</button>
           <button type="button" id="btnReset">처음부터 다시</button>
         </div>
 
@@ -469,11 +489,23 @@
   </div>
 
   <footer class="page-footer">
+    <div class="brand" id="brandBox">
+      <img class="brand-logo" id="brandLogo" alt="" hidden>
+      <div class="brand-text">
+        <strong id="officeName">세무회계 성안</strong>
+        <span id="officeTagline"></span>
+      </div>
+    </div>
     <p id="disclaimer"></p>
-    <p class="office" id="officeName"></p>
   </footer>
 
 </div>
+
+<!-- PDF 결과지를 만들 때만 쓰는 영역입니다. 화면에는 보이지 않습니다. -->
+<div id="pdfSheet" class="pdf-sheet" aria-hidden="true"></div>
+
+<!-- 복사 완료 등 짧은 안내 -->
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script type="module" src="assets/js/app.js"></script>
 </body>

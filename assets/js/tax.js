@@ -50,6 +50,10 @@ export function createInput(overrides = {}) {
     casualtyLoss: 0,      // 재해손실공제
     appraisalFee: 0,      // 감정평가수수료
 
+    // 6. 상속공제 적용 한도(상증법 제24조)에서 빼는 항목
+    bequestToNonHeir: 0,       // 상속인이 아닌 자에게 유증·사인증여한 재산
+    renouncedInheritance: 0,   // 상속포기로 다음 순위 상속인이 받은 재산
+
     // 6. 기타
     generationSkipRatio: 0, // 세대생략 상속재산의 비율 (0~1)
     generationSkipIsMinor: false,
@@ -89,6 +93,17 @@ export function calcPersonalDeduction(input, rules = TAX_RULES) {
   return { child, minor, elderly, disabled, total: child + minor + elderly + disabled };
 }
 
+/**
+ * 미성년자공제에 적용할 잔여연수 (19세가 될 때까지 남은 햇수)
+ * 1년 미만의 기간은 1년으로 보므로, 만 나이를 기준으로 단순히 빼면 됩니다.
+ * @returns {number|null} 나이가 올바르지 않으면 null
+ */
+export function calcMinorYears(age, rules = TAX_RULES) {
+  const n = Math.floor(Number(age));
+  if (!Number.isFinite(n) || n < 0) return null;
+  return Math.max(0, rules.personal.minorAge - n);
+}
+
 /** 배우자의 법정상속분 (배우자 1.5 : 자녀 각 1) */
 export function calcSpouseLegalShare(childrenCount, rules = TAX_RULES) {
   const { spouseShareWeight, childShareWeight } = rules.spouse;
@@ -97,9 +112,16 @@ export function calcSpouseLegalShare(childrenCount, rules = TAX_RULES) {
 }
 
 /**
- * 배우자 상속공제
- * 실제 상속받은 금액을 기준으로 하되 법정상속분 한도와 30억원 한도를 적용하고,
+ * 배우자 상속공제 (상증법 제19조)
+ *
+ * 실제 상속받은 금액을 기준으로 하되 아래 두 한도를 적용하고,
  * 그 결과가 5억원에 못 미치면 최소 5억원을 공제합니다.
+ *   ① 법정상속분 한도
+ *      = (상속재산가액 − 상속인이 아닌 자에게 유증한 재산 + 상속인이 받은 사전증여재산)
+ *        × 배우자 법정상속분 − 배우자가 받은 사전증여재산의 증여세 과세표준
+ *   ② 30억원
+ *
+ * @param estateForShare ①의 괄호 부분에 해당하는 금액
  */
 export function calcSpouseDeduction(input, estateForShare, rules = TAX_RULES) {
   if (!input.hasSpouse) {
@@ -185,7 +207,12 @@ export function calculate(rawInput, rules = TAX_RULES) {
   const basicRouteName =
     lumpSumAvailable && rules.lumpSumDeduction >= basicRoute ? 'lumpSum' : 'basic';
 
-  const spouse = calcSpouseDeduction(input, netEstate, rules);
+  const bequestToNonHeir = num(input.bequestToNonHeir);
+  const renouncedInheritance = num(input.renouncedInheritance);
+
+  // 배우자 법정상속분 한도는 사전증여를 더하고 상속인이 아닌 자에 대한 유증을 뺀 금액이 기준입니다.
+  const spouseBase = Math.max(0, taxableEstate - bequestToNonHeir);
+  const spouse = calcSpouseDeduction(input, spouseBase, rules);
   const financial = calcFinancialDeduction(input, rules);
   const cohabitHouse = calcCohabitHouseDeduction(input, rules);
   const casualtyLoss = num(input.casualtyLoss);
@@ -193,9 +220,21 @@ export function calculate(rawInput, rules = TAX_RULES) {
   const deductionSum =
     basicTotal + spouse.amount + financial.amount + cohabitHouse + casualtyLoss;
 
-  // 공제 적용 한도 (상증법 제24조): 공제 총액은 과세가액에서
-  // 사전증여재산의 증여세 과세표준을 뺀 금액을 넘을 수 없습니다.
-  const deductionLimit = Math.max(0, taxableEstate - num(input.priorGiftTaxBase));
+  // 상속공제 적용 한도 (상증법 제24조)
+  // 과세가액에서 ① 상속인이 아닌 자에게 유증한 재산, ② 상속포기로 다음 순위 상속인이
+  // 받은 재산, ③ 가산한 사전증여재산의 증여세 과세표준을 뺀 금액까지만 공제할 수 있습니다.
+  const limitDeductions = {
+    bequestToNonHeir,
+    renouncedInheritance,
+    priorGiftTaxBase: num(input.priorGiftTaxBase),
+  };
+  const deductionLimit = Math.max(
+    0,
+    taxableEstate
+      - limitDeductions.bequestToNonHeir
+      - limitDeductions.renouncedInheritance
+      - limitDeductions.priorGiftTaxBase,
+  );
   const totalDeduction = Math.min(deductionSum, deductionLimit);
   const deductionCapped = deductionSum > deductionLimit;
 
@@ -250,6 +289,8 @@ export function calculate(rawInput, rules = TAX_RULES) {
       casualtyLoss,
       sum: deductionSum,
       limit: deductionLimit,
+      /** 한도를 계산할 때 과세가액에서 뺀 항목들 */
+      limitDeductions,
       total: totalDeduction,
       capped: deductionCapped,
     },

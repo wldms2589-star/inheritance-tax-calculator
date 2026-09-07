@@ -8,6 +8,7 @@ import {
   calcFuneralDeduction,
   calcSpouseLegalShare,
   calcPersonalDeduction,
+  calcMinorYears,
 } from '../assets/js/tax.js';
 import { TAX_RULES } from '../assets/js/tax-rules.js';
 
@@ -69,6 +70,31 @@ test('배우자 법정상속분은 배우자 1.5 : 자녀 각 1 비율이다', (
   assert.ok(Math.abs(calcSpouseLegalShare(1) - 1.5 / 2.5) < 1e-9, '자녀 1명');
   assert.ok(Math.abs(calcSpouseLegalShare(2) - 1.5 / 3.5) < 1e-9, '자녀 2명');
   assert.ok(Math.abs(calcSpouseLegalShare(3) - 1.5 / 4.5) < 1e-9, '자녀 3명');
+});
+
+test('미성년자공제 연수는 19세까지 남은 햇수다', () => {
+  assert.equal(calcMinorYears(0), 19, '갓 태어난 자녀');
+  assert.equal(calcMinorYears(10), 9);
+  assert.equal(calcMinorYears(18), 1, '한 살만 남아도 1년');
+  assert.equal(calcMinorYears(19), 0, '19세는 대상 아님');
+  assert.equal(calcMinorYears(25), 0, '성인은 0년');
+});
+
+test('미성년자 나이에 소수점이 있으면 내림해서 계산한다', () => {
+  // 만 10세 8개월이면 만 10세로 보아 9년
+  assert.equal(calcMinorYears(10.8), 9);
+});
+
+test('미성년자 나이가 잘못되면 null을 돌려준다', () => {
+  assert.equal(calcMinorYears(-1), null);
+  assert.equal(calcMinorYears('abc'), null);
+});
+
+test('미성년자공제는 자녀공제와 별도로 더해진다', () => {
+  const p = calcPersonalDeduction({ childrenCount: 1, minorYears: calcMinorYears(10) });
+  eq(p.child, 5000 * 만, '자녀공제 1명');
+  eq(p.minor, 9000 * 만, '미성년자공제 9년');
+  eq(p.total, 1.4 * 억, '두 공제가 함께 적용');
 });
 
 test('그 밖의 인적공제를 항목별로 합산한다', () => {
@@ -198,6 +224,109 @@ test('공제 한도 계산 시 사전증여재산 과세표준을 차감한다',
   // 과세가액 = 2억 - 500만 + 5억, 공제한도 = 과세가액 - 5억(사전증여 과세표준)
   eq(r.deductions.limit, r.taxableEstate - 5 * 억, '공제 한도');
   eq(r.deductions.total, r.deductions.limit, '한도까지만 공제');
+});
+
+test('상속인이 아닌 사람에게 유증하면 공제 적용 한도가 줄어든다', () => {
+  const 기본 = calculate({ realEstate: 12 * 억, childrenCount: 2 });
+  const 유증 = calculate({ realEstate: 12 * 억, childrenCount: 2, bequestToNonHeir: 9 * 억 });
+
+  eq(유증.taxableEstate, 기본.taxableEstate, '과세가액 자체는 같다');
+  eq(유증.deductions.limit, 기본.taxableEstate - 9 * 억, '한도에서 유증분을 뺀다');
+  eq(유증.deductions.total, 유증.deductions.limit, '한도까지만 공제');
+  assert.equal(유증.deductions.capped, true);
+  assert.ok(유증.payableTax > 기본.payableTax, '공제가 줄어 세부담이 커진다');
+});
+
+test('상속포기로 넘어간 재산도 공제 적용 한도에서 뺀다', () => {
+  const r = calculate({
+    realEstate: 12 * 억,
+    childrenCount: 2,
+    renouncedInheritance: 8 * 억,
+  });
+  eq(r.deductions.limitDeductions.renouncedInheritance, 8 * 억);
+  eq(r.deductions.limit, r.taxableEstate - 8 * 억);
+});
+
+test('공제 적용 한도에서 빼는 항목들이 함께 반영된다', () => {
+  const r = calculate({
+    realEstate: 20 * 억,
+    childrenCount: 2,
+    bequestToNonHeir: 3 * 억,
+    renouncedInheritance: 2 * 억,
+    priorGifts: 4 * 억,
+    priorGiftTaxBase: 3.5 * 억,
+  });
+  const ld = r.deductions.limitDeductions;
+  eq(ld.bequestToNonHeir, 3 * 억);
+  eq(ld.renouncedInheritance, 2 * 억);
+  eq(ld.priorGiftTaxBase, 3.5 * 억);
+  eq(r.deductions.limit, r.taxableEstate - 3 * 억 - 2 * 억 - 3.5 * 억, '세 항목을 모두 차감');
+});
+
+test('배우자 법정상속분 한도는 사전증여재산을 포함한 금액으로 계산한다', () => {
+  const 증여없음 = calculate({ realEstate: 20 * 억, hasSpouse: true, childrenCount: 2 });
+  const 증여있음 = calculate({
+    realEstate: 20 * 억,
+    hasSpouse: true,
+    childrenCount: 2,
+    priorGifts: 7 * 억,
+  });
+
+  const share = 1.5 / 3.5;
+  eq(증여없음.deductions.spouse.legalShareLimit, 증여없음.taxableEstate * share);
+  eq(증여있음.deductions.spouse.legalShareLimit, 증여있음.taxableEstate * share);
+  assert.ok(
+    증여있음.deductions.spouse.amount > 증여없음.deductions.spouse.amount,
+    '사전증여가 더해진 만큼 배우자 공제 한도도 커진다',
+  );
+});
+
+test('배우자 법정상속분 한도에서 상속인이 아닌 자에 대한 유증을 뺀다', () => {
+  const r = calculate({
+    realEstate: 30 * 억,
+    hasSpouse: true,
+    childrenCount: 2,
+    bequestToNonHeir: 10 * 억,
+  });
+  const share = 1.5 / 3.5;
+  eq(
+    r.deductions.spouse.legalShareLimit,
+    (r.taxableEstate - 10 * 억) * share,
+    '유증분을 뺀 금액 기준',
+  );
+});
+
+test('배우자 사전증여 과세표준은 법정상속분 한도에서 차감된다', () => {
+  const r = calculate({
+    realEstate: 20 * 억,
+    hasSpouse: true,
+    childrenCount: 2,
+    spousePriorGiftTaxBase: 2 * 억,
+  });
+  const share = 1.5 / 3.5;
+  eq(r.deductions.spouse.legalShareLimit, r.taxableEstate * share - 2 * 억);
+});
+
+test('배우자가 실제 상속받는 금액을 입력하면 그 금액이 공제 기준이 된다', () => {
+  const r = calculate({
+    realEstate: 30 * 억,
+    hasSpouse: true,
+    childrenCount: 2,
+    spouseActualInherit: 8 * 억,
+  });
+  eq(r.deductions.spouse.amount, 8 * 억, '법정상속분 한도(약 12.8억)보다 작으므로 실제 상속액');
+  assert.equal(r.deductions.spouse.applied, 'calculated');
+});
+
+test('배우자가 법정상속분보다 많이 받아도 한도까지만 공제된다', () => {
+  const r = calculate({
+    realEstate: 30 * 억,
+    hasSpouse: true,
+    childrenCount: 2,
+    spouseActualInherit: 25 * 억,
+  });
+  const share = 1.5 / 3.5;
+  eq(r.deductions.spouse.amount, r.taxableEstate * share, '법정상속분 한도로 제한');
 });
 
 test('금융재산 공제와 동거주택 공제가 함께 반영된다', () => {

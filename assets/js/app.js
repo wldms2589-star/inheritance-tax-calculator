@@ -269,19 +269,42 @@ function collectSituation() {
    결과 렌더링
    ──────────────────────────────────────────────────────────── */
 
-function renderVerdict(result) {
+/** 계산 결과를 보여줘도 되는 상태인지 (상속인 구성이 공제를 좌우하므로 먼저 받아야 합니다) */
+function readiness(result) {
+  return {
+    heirs: readRadio('hasSpouse') !== '',
+    assets: result.grossEstate > 0,
+  };
+}
+
+function renderVerdict(result, ready) {
   const box = $('verdict');
 
-  // 아직 아무것도 입력하지 않았으면 판정 대신 안내만 보여줍니다.
-  if (result.grossEstate === 0) {
+  /** 아직 계산할 수 없는 상태의 안내 */
+  const waiting = (badge, summary) => {
     box.dataset.level = 'empty';
-    $('verdictBadge').textContent = '재산 금액을 입력해 주세요';
-    $('verdictAmount').innerHTML = '0<span class="won">원</span>';
-    $('verdictSummary').textContent =
-      '왼쪽에 물려받는 재산을 만원 단위로 입력하면 예상 상속세가 바로 계산됩니다.';
-    $('subTaxBase').textContent = '0원';
+    $('verdictBadge').textContent = badge;
+    $('verdictAmount').innerHTML = '<span class="waiting">–</span>';
+    $('verdictSummary').textContent = summary;
+    $('subTaxBase').textContent = '-';
     $('subRate').textContent = '-';
     $('subHeadroomWrap').hidden = true;
+  };
+
+  // 상속인 구성에 따라 공제가 크게 달라지므로, 고르기 전에는 세액을 보여주지 않습니다.
+  if (!ready.heirs) {
+    waiting(
+      '상속받는 분을 먼저 알려주세요',
+      '배우자가 계신지, 자녀가 몇 명인지에 따라 공제 금액이 5억원 넘게 달라집니다. 1번 항목을 먼저 선택해 주세요.',
+    );
+    return;
+  }
+
+  if (!ready.assets) {
+    waiting(
+      '재산 금액을 입력해 주세요',
+      '물려받는 재산을 만원 단위로 입력하면 예상 상속세가 바로 계산됩니다.',
+    );
     return;
   }
 
@@ -436,14 +459,17 @@ function renderBreakdown(result) {
   $('breakdownBody').innerHTML = rows.join('');
 }
 
-function renderAdvice(result, situation) {
-  if (result.grossEstate === 0) {
+function renderAdvice(result, situation, ready) {
+  if (!ready.heirs || !ready.assets) {
     $('adviceList').innerHTML = `
       <div class="advice" data-level="info">
         <h3>이 계산기로 무엇을 알 수 있나요</h3>
         <p>
           상속세가 나오는 구간인지, 나온다면 대략 얼마인지 확인할 수 있습니다.
-          아래 <strong>상황 확인</strong>까지 체크하시면 신고 여부에 따라 달라지는 부분도 함께 알려드립니다.
+          ${ready.heirs
+            ? '물려받는 재산을 입력하면 결과가 바로 표시됩니다.'
+            : '같은 재산이라도 배우자와 자녀가 있는지에 따라 세금이 완전히 달라지므로, 상속받는 분부터 여쭙습니다.'}
+          <strong>상황 확인</strong>까지 체크하시면 신고 여부에 따라 달라지는 부분도 함께 알려드립니다.
         </p>
       </div>`;
     return [];
@@ -819,8 +845,13 @@ async function savePdf() {
   if (pdfBusy) return;
   const button = $('btnPdf');
   const result = calculate(collectInput());
+  const ready = readiness(result);
 
-  if (result.grossEstate === 0) {
+  if (!ready.heirs) {
+    showToast('상속받는 분(배우자가 계신지)을 먼저 선택해 주세요.');
+    return;
+  }
+  if (!ready.assets) {
     showToast('먼저 재산 금액을 입력해 주세요.');
     return;
   }
@@ -890,10 +921,20 @@ function update() {
   const input = collectInput();
   const situation = collectSituation();
   const result = calculate(input);
+  const ready = readiness(result);
 
-  renderVerdict(result);
-  renderBreakdown(result);
-  renderAdvice(result, situation);
+  renderVerdict(result, ready);
+  renderAdvice(result, situation, ready);
+
+  // 아직 다 채우지 않았으면 계산 내역을 감춥니다. 반쪽짜리 숫자가 오해를 부르기 때문입니다.
+  const complete = ready.heirs && ready.assets;
+  $('breakdown').hidden = !complete;
+  if (complete) {
+    renderBreakdown(result);
+  } else {
+    $('breakdownBody').innerHTML = '';
+    $('breakdown').open = false;
+  }
 
   // 배우자를 선택했을 때만 "실제 상속받는 금액" 입력을 보여줍니다.
   $('spouseInheritField').hidden = !input.hasSpouse;

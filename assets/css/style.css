@@ -444,9 +444,10 @@ details.more > .more-body { padding-top: 14px; }
   color: var(--text-muted);
 }
 
-/* 아직 아무것도 입력하지 않은 상태 */
+/* 아직 다 입력하지 않아 계산을 보여줄 수 없는 상태 */
 .verdict[data-level='empty'] { background: var(--surface-alt); }
 .verdict[data-level='empty'] .verdict-amount { color: var(--text-muted); }
+.verdict-amount .waiting { font-size: 1.5rem; opacity: 0.45; letter-spacing: 0.1em; }
 
 .verdict[data-level='taxable'] { background: var(--danger-soft); }
 .verdict[data-level='taxable'] .verdict-badge {
